@@ -10,6 +10,9 @@
   <button @click="find1">开始查找</button>
   <button @click="find2">开始接收</button>
   <button @click="find3">开始连接</button>
+  <button @click="fileSelect">上传文件</button>
+  <input type="file" id="fileToUpload" style="display:none;" @change="fileSelected">
+  <button @click="createDataChannel">开始接传文件</button>
   <button @click="getDevice">获取设备列表</button>
   <div>替换背景图片</div>
   <img id="backgroundImg" :src="Beach" style="width: 200px;">
@@ -23,6 +26,8 @@
   <canvas id="vCanvas"></canvas>
   <div>截图</div>
   <canvas id="captureCanvas"></canvas>
+  <div>传输图片</div>
+  <img :src="sendPhoto" />
 </template>
 
 <script setup>
@@ -56,9 +61,52 @@ const getStream = async () => {
 }
 
 let peerConn
+let channel
+let sendPhoto = ref('')
+const createDataChannel = () => {
+  console.log('createDataChannel');
+  const dataChannel = peerConn.createDataChannel('fileTransfer', {
+    ordered: true, // 保证到达顺序
+  })
+  channel = dataChannel
+  // 接收方
+  peerConn.ondatachannel = function (event) {
+    var channel = event.channel;
+    channel.onopen = function (event) {
+      console.log('接收方文件通道已打开', event)
+      channel.send('Hi back!');
+    }
+    channel.onmessage = function (event) {
+      console.log('接收方 onmessage', event.data);
+      sendPhoto.value = event.data
+    }
+  }
+
+  // 发送方
+  dataChannel.onopen = (event) => {
+    console.log('发送方文件通道已打开', event)
+    dataChannel.send('hello')
+
+  }
+
+  dataChannel.onclose = (event) => {
+    ElMessage.warning('文件通道已关闭')
+  }
+
+  dataChannel.onerror = (event) => {
+    ElMessage.error('文件通道发生错误')
+  }
+
+  dataChannel.onmessage = (event) => {
+    console.log('发送方 onmessage', event.data)
+  }
+
+}
+
 
 const createPeerConn = () => {
   peerConn = new RTCPeerConnection()
+  createDataChannel()
   stream.getTracks().forEach((track) => {
     peerConn.addTrack(track, stream)
   })
@@ -69,6 +117,7 @@ const createPeerConn = () => {
     remoteVideo.srcObject = event.streams[0]
   }
 }
+
 const find1 = async () => {
   createPeerConn()
   await createOffer()
@@ -225,8 +274,49 @@ const updateCamera = async () => {
   await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } })
 }
 
+async function readFileData(file) {
+  let offset = 0;
+  let buffer = null;
+  const chunkSize = pc.sctp.maxMessageSize;
+  while (offset < file.size) {
+    const slice = file.slice(offset, offset + chunkSize);
+    buffer = await slice.arrayBuffer();
+    if (dcFile.bufferedAmount > 65535) {
+      // 等待缓存队列降到阈值之下
+      await new Promise(resolve => {
+        dcFile.onbufferedamountlow = (ev) => {
+          log("bufferedamountlow event! bufferedAmount: " + dcFile.bufferedAmount);
+          resolve(0);
+        }
+      });
+    }
+
+    // 可以发送数据了
+    dcFile.send(buffer);
+    offset += buffer.byteLength;
+    sendProgress.value = offset;
+
+    // 更新发送速率
+    const interval = (new Date()).getTime() - lastReadTime;
+    bitrateSpan.textContent = `${Math.round(chunkSize * 8 / interval)}kbps`;
+    lastReadTime = (new Date()).getTime();
+  }
+}
 
 
+function fileSelect() {
+  document.getElementById("fileToUpload").click();
+}
+
+function fileSelected() {
+  let files = document.getElementById('fileToUpload').files;
+  console.log(files[0]);
+  var reader = new FileReader();
+  reader.readAsDataURL(files[0]);
+  reader.onloadend = function (e) {
+    channel.send(e.target.result);
+  };
+}
 
 </script>
 
