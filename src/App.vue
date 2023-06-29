@@ -7,11 +7,21 @@
   <button @click="startRecord">开始录制</button>
   <button @click="stopRecord">停止录制</button>
   <button @click="capture">截图</button>
+  <button @click="find1">开始查找</button>
+  <button @click="find2">开始接收</button>
+  <button @click="find3">开始连接</button>
   <button @click="getDevice">获取设备列表</button>
+  <div>替换背景图片</div>
   <img id="backgroundImg" :src="Beach" style="width: 200px;">
-  <video id="localVideo" muted autoplay width="400" style="transform: scaleX(-1);"></video>
+  <div>本地摄像头</div>
+  <video id="localVideo" muted autoplay width="200" style="transform: scaleX(-1);"></video>
+  <div>远程摄像头</div>
+  <video id="remoteVideo" muted autoplay width="200" style="transform: scaleX(-1);"></video>
+  <div>本地canvas</div>
   <canvas id="localCanvas"></canvas>
+  <div>合成canvas</div>
   <canvas id="vCanvas"></canvas>
+  <div>截图</div>
   <canvas id="captureCanvas"></canvas>
 </template>
 
@@ -29,8 +39,8 @@ const getDevice = () => {
 const capture = () => {
   const video = document.getElementById('localVideo')
   const canvas = document.getElementById('captureCanvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
+  canvas.width = getComputedStyle(video).width.slice(0, -2);
+  canvas.height = getComputedStyle(video).height.slice(0, -2);
   const ctx = canvas.getContext('2d')
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 }
@@ -45,11 +55,79 @@ const getStream = async () => {
   }
 }
 
+let peerConn
+
+const createPeerConn = () => {
+  peerConn = new RTCPeerConnection()
+  stream.getTracks().forEach((track) => {
+    peerConn.addTrack(track, stream)
+  })
+
+  const remoteVideo = document.getElementById('remoteVideo')
+  peerConn.ontrack = (event) => {
+    console.log('peerConn', event);
+    remoteVideo.srcObject = event.streams[0]
+  }
+}
+const find1 = async () => {
+  createPeerConn()
+  await createOffer()
+}
+const find2 = async () => {
+  createPeerConn()
+  await createAnswer()
+}
+const find3 = async () => {
+  await addAnswer()
+}
+
+let offerSdp = ''
+let answerSdp = ''
+
+const createOffer = async () => {
+  const offer = await peerConn.createOffer()
+  console.log('createOffer', offer);
+  await peerConn.setLocalDescription(offer)
+  peerConn.onicecandidate = async (event) => {
+    if (event.candidate) {
+      offerSdp = JSON.stringify(peerConn.localDescription)
+      localStorage.setItem('offerSdp', offerSdp)
+    }
+  }
+}
+
+const createAnswer = async () => {
+  offerSdp = localStorage.getItem('offerSdp')
+  console.log('createAnswer offerSdp', offerSdp);
+  const offer = JSON.parse(offerSdp)
+  await peerConn.setRemoteDescription(offer)
+  const answer = await peerConn.createAnswer()
+  console.log('createAnswer answer', answer);
+  await peerConn.setLocalDescription(answer)
+  peerConn.onicecandidate = async (event) => {
+    if (event.candidate) {
+      answerSdp = JSON.stringify(peerConn.localDescription)
+      localStorage.setItem('answerSdp', answerSdp)
+
+    }
+  }
+}
+
+const addAnswer = async () => {
+  answerSdp = localStorage.getItem('answerSdp')
+  console.log('addAnswer answerSdp', answerSdp);
+  const answer = JSON.parse(answerSdp)
+  if (!peerConn.currentRemoteDescription) {
+    peerConn.setRemoteDescription(answer)
+  }
+}
+
 let rData, rCtx, change
 const drawCanvas = (video) => {
   const canvas = document.getElementById('localCanvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
+
+  canvas.width = getComputedStyle(video).width.slice(0, -2);
+  canvas.height = getComputedStyle(video).height.slice(0, -2);
 
   const draw = () => {
     const ctx = canvas.getContext('2d')
@@ -67,8 +145,8 @@ const changeBack = () => {
   const backgroundImg = document.getElementById('backgroundImg')
   const vCanvas = document.getElementById('vCanvas')
   const video = document.getElementById('localVideo')
-  vCanvas.width = video.videoWidth
-  vCanvas.height = video.videoHeight
+  vCanvas.width = getComputedStyle(video).width.slice(0, -2);
+  vCanvas.height = getComputedStyle(video).height.slice(0, -2);
   const ctx = vCanvas.getContext('2d')
   ctx.drawImage(backgroundImg, 0, 0, vCanvas.width, vCanvas.height)
   const backgroundImageData = ctx.getImageData(0, 0, vCanvas.width, vCanvas.height)
