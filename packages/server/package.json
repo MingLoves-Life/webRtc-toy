@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node app.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/node": "16",
     "@vercel/node": "^2.15.3",
+    "koa": "^2.14.2",
     "typescript": "^5.1.6"
   }
 }
