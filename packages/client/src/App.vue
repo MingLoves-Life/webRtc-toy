@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref } from 'vue';
+import { nextTick, ref, onMounted } from 'vue';
 import Beach from "./assets/beach.jpeg";
 
 
@@ -40,6 +40,12 @@ const getDevice = () => {
     console.log(devices)
   })
 }
+
+onMounted(() => {
+  fetch('http://localhost:3008/post', {
+    method: 'post', body: JSON.stringify({ test: 1 }),
+  })
+})
 
 const capture = () => {
   const video = document.getElementById('localVideo')
