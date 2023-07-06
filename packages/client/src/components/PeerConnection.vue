@@ -19,12 +19,13 @@ import { useCreateDataCannel } from "../hooks/useCreateDataCannel";
 
 defineComponent({ name: "PeerConnection" });
 
+const props = defineProps(["stream"]);
+
 let offerSdp = "";
 let answerSdp = "";
 let peerConnection;
 
-const { channel, sendPhoto, createDataChannel } =
-  useCreateDataCannel(peerConnection);
+const { channel, sendPhoto, createDataChannel } = useCreateDataCannel();
 
 const find1 = async () => {
   createPeerConn();
@@ -42,9 +43,9 @@ const find3 = async () => {
 
 const createPeerConn = () => {
   peerConnection = new RTCPeerConnection();
-  createDataChannel();
-  stream.value.getTracks().forEach((track) => {
-    peerConnection.addTrack(track, stream.value);
+  createDataChannel(peerConnection);
+  props.stream.getTracks().forEach((track) => {
+    peerConnection.addTrack(track, props.stream);
   });
 
   const remoteVideo = document.getElementById("remoteVideo");

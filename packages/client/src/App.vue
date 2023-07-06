@@ -1,23 +1,16 @@
 <template>
-  <Camera @updateStream="updateStream" @ChangeBackground="ChangeBackgroundRef?.changBack" />
+  <Camera :webRtc="webRtc" />
   <ShareScreen />
-  <ChangeBackground ref="ChangeBackgroundRef" />
+  <ChangeBackground :webRtc="webRtc" />
 
   <Record :stream="stream" />
   <Devices />
-  <PeerConnection />
-  <div>本地摄像头</div>
-  <video id="localVideo" muted autoplay width="200" style="transform: scaleX(-1)"></video>
-  <div>远程摄像头</div>
-  <video id="remoteVideo" muted autoplay width="200" style="transform: scaleX(-1)"></video>
-  <div>本地canvas</div>
-  <canvas id="localCanvas"></canvas>
-  <div>合成canvas</div>
-  <canvas id="vCanvas"></canvas>
+  <PeerConnection :stream="stream" />
+  <MediaWrapper />
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 
 import Camera from "./components/Camera.vue";
 import Devices from "./components/Devices.vue";
@@ -25,6 +18,9 @@ import Record from "./components/Record.vue";
 import ShareScreen from "./components/ShareScreen.vue";
 import ChangeBackground from "./components/ChangeBackground.vue";
 import PeerConnection from "./components/PeerConnection.vue";
+import MediaWrapper from "./components/MediaWrapper.vue";
+
+import { useWebRtc } from "./hooks/useWebRtc";
 
 onMounted(() => {
   fetch("http://localhost:3008/post", {
@@ -35,8 +31,15 @@ onMounted(() => {
 
 const ChangeBackgroundRef = ref();
 
-let stream = ref();
-const updateStream = (stream) => (stream.value = stream);
-</script>
+const webRtc = useWebRtc({
+  videoSelector: "#localVideo",
+  canvasSelect: "#localCanvas",
+  captureCanvasSelect: "#captureCanvas",
+});
 
-<style scoped></style>
+const stream = ref();
+const updateStream = (stream) => {
+  console.log("updateStream");
+  stream.value = stream;
+};
+</script>

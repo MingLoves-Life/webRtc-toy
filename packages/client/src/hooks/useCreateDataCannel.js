@@ -1,9 +1,9 @@
 import { ref } from "vue";
 
-const useCreateDataCannel = (peerConnection) => {
+const useCreateDataCannel = () => {
   let channel = ref();
   let sendPhoto = ref();
-  const createDataChannel = () => {
+  const createDataChannel = (peerConnection) => {
     console.log("createDataChannel");
     const dataChannel = peerConnection.createDataChannel("fileTransfer", {
       ordered: true,

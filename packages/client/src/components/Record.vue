@@ -3,29 +3,27 @@
   <button v-else @click="stopRecord">停止录制</button>
 </template>
 <script setup>
-import { defineComponent,ref } from "vue";
+import { defineComponent, ref } from "vue";
 
 defineComponent({ name: "Record" });
 
-const props = defineProps({
-  stream: MediaStream,
-});
+const props = defineProps(["stream"]);
 
-let mediaRecorder=ref();
+let mediaRecorder = ref();
 
 const startRecord = () => {
-  console.log("开启录制");
+  console.log("开启录制", props);
   mediaRecorder.value = new MediaRecorder(props.stream);
-  mediaRecorder.value .start();
-  mediaRecorder.value .ondataavailable = (e) => {
+  mediaRecorder.value.start();
+  mediaRecorder.value.ondataavailable = (e) => {
     downloadRecord(e.data);
   };
 };
 
 const stopRecord = () => {
   console.log("停止录制");
-  mediaRecorder.value .stop();
-  mediaRecorder.value  = null;
+  mediaRecorder.value.stop();
+  mediaRecorder.value = null;
 };
 
 const downloadRecord = (blob) => {
