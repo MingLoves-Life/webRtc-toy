@@ -1,11 +1,13 @@
 <template>
   <button @click="getStream">打开摄像头</button>
-  <button @click="changeBackground">更换背景</button>
-  <input v-model="allowance" type="text" style="width: 40px" />
   <button @click="updateCamera">切换摄像头</button>
-  <button @click="shareScreen">屏幕共享</button>
-  <Record :stream="stream" />
   <button @click="capture">截图</button>
+
+  <ShareScreen />
+  <ChangeBackground ref="ChangeBackgroundRef" />
+
+  <Record :stream="stream" />
+
   <button @click="find1">开始查找</button>
   <button @click="find2">开始接收</button>
   <button @click="find3">开始连接</button>
@@ -13,8 +15,7 @@
   <button @click="createDataChannel">开始接传文件</button>
   <FileTransfer :channel="channel" />
   <Devices />
-  <div>替换背景图片</div>
-  <img id="backgroundImg" :src="Beach" style="width: 200px" />
+
   <div>本地摄像头</div>
   <video
     id="localVideo"
@@ -47,9 +48,10 @@ import { nextTick, ref, onMounted, reactive } from "vue";
 import Devices from "./components/Devices.vue";
 import Record from "./components/Record.vue";
 import FileTransfer from "./components/FileTransfer.vue";
+import ShareScreen from "./components/ShareScreen.vue";
+import ChangeBackground from "./components/ChangeBackground.vue";
 
 import { useCreateDataCannel } from "./hooks/useCreateDataCannel";
-import Beach from "./assets/beach.jpeg";
 
 onMounted(() => {
   fetch("http://localhost:3008/post", {
@@ -57,6 +59,8 @@ onMounted(() => {
     body: JSON.stringify({ test: 1 }),
   });
 });
+
+const ChangeBackgroundRef = ref();
 
 const capture = () => {
   const video = document.getElementById("localVideo");
@@ -158,72 +162,11 @@ const drawCanvas = (video) => {
   const draw = () => {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    rData = ctx.getImageData(0, 0, vCanvas.width, vCanvas.height);
-    rCtx = ctx;
-    if (change) changeBack();
+    const realData = ctx.getImageData(0, 0, vCanvas.width, vCanvas.height);
+    ChangeBackgroundRef.value.changeBack(realData, ctx);
     requestAnimationFrame(draw);
   };
-
   draw();
-};
-
-const changeBack = () => {
-  const backgroundImg = document.getElementById("backgroundImg");
-  const vCanvas = document.getElementById("vCanvas");
-  const video = document.getElementById("localVideo");
-  vCanvas.width = getComputedStyle(video).width.slice(0, -2);
-  vCanvas.height = getComputedStyle(video).height.slice(0, -2);
-  const ctx = vCanvas.getContext("2d");
-  ctx.drawImage(backgroundImg, 0, 0, vCanvas.width, vCanvas.height);
-  const backgroundImageData = ctx.getImageData(
-    0,
-    0,
-    vCanvas.width,
-    vCanvas.height
-  );
-  processFrameDrawToVirtualVideo(backgroundImageData);
-};
-
-const changeBackground = () => {
-  change = true;
-};
-
-const allowance = ref(40);
-function processFrameDrawToVirtualVideo(backgroundImageData) {
-  for (let i = 0; i < rData.data.length; i += 4) {
-    const r = rData.data[i];
-    const g = rData.data[i + 1];
-    const b = rData.data[i + 2];
-    const a = rData.data[i + 3];
-    const bgR = backgroundImageData.data[i];
-    const bgG = backgroundImageData.data[i + 1];
-    const bgB = backgroundImageData.data[i + 2];
-    const bgA = backgroundImageData.data[i + 3];
-
-    const diff = colorDiff([r, g, b], [100, 100, 100]);
-    if (diff < allowance.value) {
-      rData.data[i] = bgR;
-      rData.data[i + 1] = bgG;
-      rData.data[i + 2] = bgB;
-      rData.data[i + 3] = bgA;
-    }
-  }
-  rCtx.putImageData(rData, 0, 0);
-}
-
-function colorDiff(rgba1, rgba2) {
-  let d = 0;
-  for (let i = 0; i < rgba1.length; i++) {
-    d += (rgba1[i] - rgba2[i]) ** 2;
-  }
-  return Math.sqrt(d);
-}
-
-const shareScreen = () => {
-  navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
-    const video = document.getElementById("localVideo");
-    video.srcObject = stream;
-  });
 };
 
 const updateCamera = async () => {
@@ -231,37 +174,6 @@ const updateCamera = async () => {
     video: { facingMode: { exact: "environment" } },
   });
 };
-
-async function readFileData(file) {
-  let offset = 0;
-  let buffer = null;
-  const chunkSize = pc.sctp.maxMessageSize;
-  while (offset < file.size) {
-    const slice = file.slice(offset, offset + chunkSize);
-    buffer = await slice.arrayBuffer();
-    if (dcFile.bufferedAmount > 65535) {
-      // 等待缓存队列降到阈值之下
-      await new Promise((resolve) => {
-        dcFile.onbufferedamountlow = (ev) => {
-          log(
-            "bufferedamountlow event! bufferedAmount: " + dcFile.bufferedAmount
-          );
-          resolve(0);
-        };
-      });
-    }
-
-    // 可以发送数据了
-    dcFile.send(buffer);
-    offset += buffer.byteLength;
-    sendProgress.value = offset;
-
-    // 更新发送速率
-    const interval = new Date().getTime() - lastReadTime;
-    bitrateSpan.textContent = `${Math.round((chunkSize * 8) / interval)}kbps`;
-    lastReadTime = new Date().getTime();
-  }
-}
 </script>
 
 <style scoped></style>
