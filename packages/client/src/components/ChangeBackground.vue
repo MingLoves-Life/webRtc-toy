@@ -1,8 +1,10 @@
 <template>
-  <button @click="changeBackground">更换背景</button>
+  <button @click="changeBackground">{{ change ? "取消" : "" }}更换背景</button>
   <input v-model="allowance" type="text" style="width: 40px" />
-  <div>替换背景图片</div>
-  <img id="backgroundImg" :src="Beach" style="width: 200px" />
+  <template v-if="change">
+    <div>替换背景图片</div>
+    <img id="backgroundImg" :src="Beach" style="width: 200px" />
+  </template>
 </template>
 <script setup>
 import { defineComponent, ref } from "vue";
@@ -13,9 +15,7 @@ defineComponent({ name: "ChangeBackground" });
 const allowance = ref(40);
 const change = ref(false);
 
-const changeBackground = () => {
-  change.value = true;
-};
+const changeBackground = () => (change.value = !change.value);
 
 let realData, realCtx;
 

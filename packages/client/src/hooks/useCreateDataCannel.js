@@ -2,6 +2,7 @@ import { ref } from "vue";
 
 const useCreateDataCannel = (peerConnection) => {
   let channel = ref();
+  let sendPhoto = ref();
   const createDataChannel = () => {
     console.log("createDataChannel");
     const dataChannel = peerConnection.createDataChannel("fileTransfer", {
@@ -12,7 +13,7 @@ const useCreateDataCannel = (peerConnection) => {
     send(dataChannel);
   };
 
-  return { channel, createDataChannel };
+  return { channel, sendPhoto, createDataChannel };
 };
 
 // 接收方事件
