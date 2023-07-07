@@ -3,7 +3,7 @@ import { ref } from "vue";
 const useCanvasChangeBackground = () => {
   let backgroundImageData, localData, localContext;
   let changeBackgroundStatus = ref(false);
-  const allowance = ref(40);
+  const changeBackgroundAllowance = ref(40);
 
   const changeBackground = (data, context) => {
     if (!changeBackgroundStatus.value) return;
@@ -32,7 +32,7 @@ const useCanvasChangeBackground = () => {
       const bgA = backgroundImageData.data[i + 3];
 
       const diff = colorDiff([r, g, b], [100, 100, 100]);
-      if (diff < allowance.value) {
+      if (diff < changeBackgroundAllowance.value) {
         localData.data[i] = bgR;
         localData.data[i + 1] = bgG;
         localData.data[i + 2] = bgB;
@@ -47,13 +47,15 @@ const useCanvasChangeBackground = () => {
   };
 
   const updateAllowance = (value) => {
-    allowance.value = value;
+    console.log(value);
+    changeBackgroundAllowance.value = value;
   };
 
   return {
     changeBackgroundStatus,
     updateChangeBackgroundStatus,
     changeBackground,
+    changeBackgroundAllowance,
     updateAllowance,
   };
 };

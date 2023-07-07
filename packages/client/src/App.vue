@@ -3,7 +3,7 @@
   <ShareScreen />
   <ChangeBackground :webRtc="webRtc" />
 
-  <Record :stream="stream" />
+  <Record :webRtc="webRtc" />
   <Devices />
   <PeerConnection :stream="stream" />
   <MediaWrapper />

@@ -2,7 +2,11 @@
   <button @click="props.webRtc.updateChangeBackgroundStatus">
     {{ (props.webRtc.changeBackgroundStatus.value ? "取消" : "") + "更换背景" }}
   </button>
-  <!-- <input v-model="allowance" type="text" style="width: 40px" /> -->
+  <input
+    v-model="props.webRtc.changeBackgroundAllowance.value"
+    type="text"
+    style="width: 40px"
+  />
   <template v-if="props.webRtc.changeBackgroundStatus.value">
     <div>替换背景图片</div>
     <img id="backgroundImg" :src="Beach" style="width: 200px" />

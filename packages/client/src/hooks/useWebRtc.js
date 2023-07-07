@@ -1,15 +1,14 @@
-import { nextTick, defineComponent, onMounted, watchEffect } from "vue";
+import { nextTick, defineComponent, onMounted, watchEffect, ref } from "vue";
 import { useCanvasChangeBackground } from "./useCanvasChangeBackground";
+import { useMediaRecorder } from "./useMediaRecorder";
+
 const useWebRtc = ({ videoSelector, canvasSelect, captureCanvasSelect }) => {
   let stream;
   let localVideo, localCanvas;
 
-  const {
-    changeBackgroundStatus,
-    updateChangeBackgroundStatus,
-    changeBackground,
-    updateAllowance
-  } = useCanvasChangeBackground();
+  const canvasChangeBackground = useCanvasChangeBackground();
+
+  const { startRecord, stopRecord, mediaRecorderStatus } = useMediaRecorder();
 
   onMounted(() => {
     localVideo = document.querySelector(videoSelector);
@@ -32,7 +31,7 @@ const useWebRtc = ({ videoSelector, canvasSelect, captureCanvasSelect }) => {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(localVideo, 0, 0, localCanvas.width, localCanvas.height);
       const realData = ctx.getImageData(0, 0, vCanvas.width, vCanvas.height);
-      changeBackground(realData, ctx);
+      canvasChangeBackground.changeBackground(realData, ctx);
       requestAnimationFrame(draw);
     };
 
@@ -67,8 +66,10 @@ const useWebRtc = ({ videoSelector, canvasSelect, captureCanvasSelect }) => {
     openCamera,
     capture,
     updateCamera,
-    changeBackgroundStatus,
-    updateChangeBackgroundStatus,
+    ...canvasChangeBackground,
+    startRecord: () => startRecord(stream),
+    stopRecord,
+    mediaRecorderStatus,
   };
 };
 
