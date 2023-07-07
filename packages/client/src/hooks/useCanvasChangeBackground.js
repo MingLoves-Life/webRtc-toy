@@ -2,10 +2,11 @@ import { ref } from "vue";
 
 const useCanvasChangeBackground = () => {
   let backgroundImageData, localData, localContext;
-  let changeStatus = ref(false);
+  let changeBackgroundStatus = ref(false);
+  const allowance = ref(40);
 
   const changeBackground = (data, context) => {
-    if (!changeStatus.value) return;
+    if (!changeBackgroundStatus.value) return;
     localData = data;
     localContext = context;
     const backgroundImg = document.getElementById("backgroundImg");
@@ -41,9 +42,20 @@ const useCanvasChangeBackground = () => {
     localContext.putImageData(localData, 0, 0);
   }
 
-  const updateChangeStatus = () => (changeStatus.value = !changeStatus.value);
+  const updateChangeBackgroundStatus = () => {
+    changeBackgroundStatus.value = !changeBackgroundStatus.value;
+  };
 
-  return { changeStatus, updateChangeStatus, changeBackground };
+  const updateAllowance = (value) => {
+    allowance.value = value;
+  };
+
+  return {
+    changeBackgroundStatus,
+    updateChangeBackgroundStatus,
+    changeBackground,
+    updateAllowance,
+  };
 };
 
 function colorDiff(rgba1, rgba2) {

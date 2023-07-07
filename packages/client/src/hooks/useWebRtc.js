@@ -8,6 +8,7 @@ const useWebRtc = ({ videoSelector, canvasSelect, captureCanvasSelect }) => {
     changeBackgroundStatus,
     updateChangeBackgroundStatus,
     changeBackground,
+    updateAllowance
   } = useCanvasChangeBackground();
 
   onMounted(() => {
