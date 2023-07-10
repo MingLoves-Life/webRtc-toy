@@ -24,13 +24,16 @@ const useWebRtc = ({ videoSelector, canvasSelect, captureCanvasSelect }) => {
   const drawCanvas = () => {
     const canvas = document.querySelector(canvasSelect);
 
-    localCanvas.width = getComputedStyle(localVideo).width.slice(0, -2);
-    localCanvas.height = getComputedStyle(localVideo).height.slice(0, -2);
+    const width = getComputedStyle(localVideo).width.slice(0, -2);
+    const height = getComputedStyle(localVideo).height.slice(0, -2);
+
+    localCanvas.width = width;
+    localCanvas.height = height;
 
     const draw = () => {
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(localVideo, 0, 0, localCanvas.width, localCanvas.height);
-      const realData = ctx.getImageData(0, 0, vCanvas.width, vCanvas.height);
+      ctx.drawImage(localVideo, 0, 0, width, height);
+      const realData = ctx.getImageData(0, 0, width, height);
       canvasChangeBackground.changeBackground(realData, ctx);
       requestAnimationFrame(draw);
     };

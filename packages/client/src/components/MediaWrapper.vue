@@ -14,10 +14,6 @@
       <div>本地canvas</div>
       <canvas id="localCanvas"></canvas>
     </div>
-    <div>
-      <div>合成canvas</div>
-      <canvas id="vCanvas"></canvas>
-    </div>
 
     <div>
       <div>截图</div>
