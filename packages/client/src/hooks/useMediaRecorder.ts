@@ -23,7 +23,8 @@ const useMediaRecorder = () => {
 
   const downloadRecord = (blob) => {
     console.log(blob);
-    let a = document.createElement("a");
+    let a: HTMLAnchorElement | null = null;
+    a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "record.mp4";
     a.click();

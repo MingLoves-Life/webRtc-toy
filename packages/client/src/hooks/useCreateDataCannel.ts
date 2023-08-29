@@ -9,7 +9,7 @@ const useCreateDataCannel = () => {
       ordered: true,
     });
     channel.value = dataChannel;
-    receive(peerConnection);
+    receive(peerConnection, sendPhoto);
     send(dataChannel);
   };
 
@@ -17,7 +17,7 @@ const useCreateDataCannel = () => {
 };
 
 // 接收方事件
-const receive = (peerConnection) => {
+const receive = (peerConnection, sendPhoto) => {
   peerConnection.ondatachannel = function (event) {
     const { channel } = event;
 
@@ -41,11 +41,11 @@ const send = (dataChannel) => {
   };
 
   dataChannel.onclose = (event) => {
-    ElMessage.warning("文件通道已关闭");
+    console.log("文件通道已关闭");
   };
 
   dataChannel.onerror = (event) => {
-    ElMessage.error("文件通道发生错误");
+    console.log("文件通道发生错误");
   };
 
   dataChannel.onmessage = (event) => {

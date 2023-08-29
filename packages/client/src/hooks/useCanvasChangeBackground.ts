@@ -26,12 +26,14 @@ const useCanvasChangeBackground = () => {
     localData = data;
     localContext = context;
     const video = document.getElementById("localVideo");
-    const width = getComputedStyle(video).width.slice(0, -2);
-    const height = getComputedStyle(video).height.slice(0, -2);
+    if (video) {
+      const width = getComputedStyle(video).width.slice(0, -2);
+      const height = getComputedStyle(video).height.slice(0, -2);
 
-    getBackgroundImageData(width, height);
+      getBackgroundImageData(width, height);
 
-    processFrameDrawToVirtualVideo();
+      processFrameDrawToVirtualVideo();
+    }
   };
 
   function processFrameDrawToVirtualVideo() {

@@ -21,15 +21,10 @@ import PeerConnection from "./components/PeerConnection.vue";
 import MediaWrapper from "./components/MediaWrapper.vue";
 
 import { useWebRtc } from "./hooks/useWebRtc";
-
+import { sendOffer } from "./api/PeerConnection";
 onMounted(() => {
-  fetch("http://localhost:3008/post", {
-    method: "post",
-    body: JSON.stringify({ test: 1 }),
-  });
+  sendOffer()
 });
-
-const ChangeBackgroundRef = ref();
 
 const webRtc = useWebRtc({
   videoSelector: "#localVideo",
