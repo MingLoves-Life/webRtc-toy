@@ -5,7 +5,7 @@
 
   <Record :webRtc="webRtc" />
   <Devices />
-  <PeerConnection :stream="stream" />
+  <PeerConnection :stream="webRtc.stream" />
   <MediaWrapper />
 </template>
 
@@ -22,8 +22,9 @@ import MediaWrapper from "./components/MediaWrapper.vue";
 
 import { useWebRtc } from "./hooks/useWebRtc";
 import { sendOffer } from "./api/PeerConnection";
+
 onMounted(() => {
-  sendOffer()
+  // sendOffer()
 });
 
 const webRtc = useWebRtc({
@@ -32,9 +33,5 @@ const webRtc = useWebRtc({
   captureCanvasSelect: "#captureCanvas",
 });
 
-const stream = ref();
-const updateStream = (stream) => {
-  console.log("updateStream");
-  stream.value = stream;
-};
+
 </script>

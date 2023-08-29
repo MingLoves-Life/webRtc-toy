@@ -1,5 +1,5 @@
 <template>
-  <button @click="find1">开始查找</button>
+  <button @click="startFind">开始查找</button>
   <button @click="find2">开始接收</button>
   <button @click="find3">开始连接</button>
   <button @click="createDataChannel">开始接传文件</button>
@@ -9,31 +9,34 @@
     <div>传输图片</div>
     <img :src="sendPhoto" />
   </template>
+
+  <div v-for="id in ids" @click="startConnect(id)">{{ id }}</div>
 </template>
-<script setup>
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { defineComponent, toRef, ref, Ref } from 'vue';
+import { sendOffer, getIdsList, getOffer, sendAnswer } from '../api/PeerConnection';
+import FileTransfer from '../components/FileTransfer.vue';
+import { useCreateDataCannel } from '../hooks/useCreateDataCannel';
 
-import FileTransfer from "../components/FileTransfer.vue";
+defineComponent({ name: 'PeerConnection' });
 
-import { useCreateDataCannel } from "../hooks/useCreateDataCannel";
+let offerSdp = '';
+let answerSdp = '';
+let peerConnection: RTCPeerConnection;
 
-defineComponent({ name: "PeerConnection" });
-
-const props = defineProps(["stream"]);
-
-let offerSdp = "";
-let answerSdp = "";
-let peerConnection;
+const props = defineProps(['stream']);
+const stream = toRef(props, 'stream');
+const ids: Ref<string[]> = ref([]);
 
 const { channel, sendPhoto, createDataChannel } = useCreateDataCannel();
 
-const find1 = async () => {
-  createPeerConn();
+const startFind = async () => {
+  createPeerConnection();
   await createOffer();
 };
 
 const find2 = async () => {
-  createPeerConn();
+  createPeerConnection();
   await createAnswer();
 };
 
@@ -41,51 +44,48 @@ const find3 = async () => {
   await addAnswer();
 };
 
-const createPeerConn = () => {
+const createPeerConnection = () => {
   peerConnection = new RTCPeerConnection();
   createDataChannel(peerConnection);
-  props.stream.getTracks().forEach((track) => {
-    peerConnection.addTrack(track, props.stream);
+
+  stream.value.getTracks().forEach((track) => {
+    peerConnection.addTrack(track, stream.value);
   });
 
-  const remoteVideo = document.getElementById("remoteVideo");
+  const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
   peerConnection.ontrack = (event) => {
-    console.log("peerConnection", event);
-    remoteVideo.srcObject = event.streams[0];
+    console.log('peerConnection', event);
+    if (remoteVideo) remoteVideo.srcObject = event.streams[0];
   };
 };
 
 const createOffer = async () => {
   const offer = await peerConnection.createOffer();
-  console.log("createOffer", offer);
   await peerConnection.setLocalDescription(offer);
   peerConnection.onicecandidate = async (event) => {
-    if (event.candidate) {
-      offerSdp = JSON.stringify(peerConnection.localDescription);
-      localStorage.setItem("offerSdp", offerSdp);
-    }
+    if (event.candidate && peerConnection?.localDescription) sendOffer(peerConnection.localDescription);
   };
 };
 
 const createAnswer = async () => {
-  offerSdp = localStorage.getItem("offerSdp");
-  console.log("createAnswer offerSdp", offerSdp);
-  const offer = JSON.parse(offerSdp);
+  const idsList = await getIdsList();
+  ids.value = idsList;
+};
+
+const startConnect = async (id: string) => {
+  const offer = await getOffer(id);
   await peerConnection.setRemoteDescription(offer);
   const answer = await peerConnection.createAnswer();
-  console.log("createAnswer answer", answer);
+  console.log('createAnswer answer', answer);
   await peerConnection.setLocalDescription(answer);
   peerConnection.onicecandidate = async (event) => {
-    if (event.candidate) {
-      answerSdp = JSON.stringify(peerConnection.localDescription);
-      localStorage.setItem("answerSdp", answerSdp);
-    }
+    if (event.candidate && peerConnection.localDescription) sendAnswer(peerConnection.localDescription);
   };
 };
 
 const addAnswer = async () => {
-  answerSdp = localStorage.getItem("answerSdp");
-  console.log("addAnswer answerSdp", answerSdp);
+  answerSdp = localStorage.getItem('answerSdp');
+  console.log('addAnswer answerSdp', answerSdp);
   const answer = JSON.parse(answerSdp);
   if (!peerConnection.currentRemoteDescription) {
     peerConnection.setRemoteDescription(answer);
