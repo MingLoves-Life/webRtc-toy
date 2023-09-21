@@ -1,0 +1,9 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "types": ["node"],
+    "downlevelIteration": true,
+  },
+  "target": "ESNext",
+  "include": ["*.ts"]
+}
