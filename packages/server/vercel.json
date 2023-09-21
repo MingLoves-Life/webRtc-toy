@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/app.ts",
+      "dest": "/",
       "headers": {
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
