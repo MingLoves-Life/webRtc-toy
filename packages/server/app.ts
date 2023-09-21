@@ -49,8 +49,4 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(80, () => {
-  console.log("3008项目启动");
-});
-
-module.exports = app.callback();
+module.exports = httpServer.callback();
