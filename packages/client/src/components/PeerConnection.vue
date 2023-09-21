@@ -1,7 +1,7 @@
 <template>
   <button @click="startFind">开始查找</button>
-  <button @click="find2">开始接收</button>
-  <button @click="find3">开始连接</button>
+  <button @click="startReceive">开始接收</button>
+  <button @click="addAnswer">开始连接</button>
   <button @click="createDataChannel">开始接传文件</button>
   <FileTransfer :channel="channel" />
 
@@ -14,7 +14,7 @@
 </template>
 <script setup lang="ts">
 import { defineComponent, toRef, ref, Ref } from 'vue';
-import { sendOffer, getIdsList, getOffer, sendAnswer } from '../api/PeerConnection';
+import { sendOffer, getIdsList, getOffer, sendAnswer, getAnswerCallback } from '../api/PeerConnection';
 import FileTransfer from '../components/FileTransfer.vue';
 import { useCreateDataCannel } from '../hooks/useCreateDataCannel';
 
@@ -35,13 +35,9 @@ const startFind = async () => {
   await createOffer();
 };
 
-const find2 = async () => {
+const startReceive = async () => {
   createPeerConnection();
   await createAnswer();
-};
-
-const find3 = async () => {
-  await addAnswer();
 };
 
 const createPeerConnection = () => {
@@ -63,13 +59,17 @@ const createOffer = async () => {
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
   peerConnection.onicecandidate = async (event) => {
-    if (event.candidate && peerConnection?.localDescription) sendOffer(peerConnection.localDescription);
+    if (event.candidate && peerConnection?.localDescription) {
+      sendOffer(peerConnection.localDescription);
+      getAnswerCallback.push(addAnswer);
+      console.log('注册 addAnswer 回调');
+    }
   };
 };
 
 const createAnswer = async () => {
   const idsList = await getIdsList();
-  ids.value = idsList;
+  ids.value = idsList.filter((id) => id !== window.id);
 };
 
 const startConnect = async (id: string) => {
@@ -79,14 +79,13 @@ const startConnect = async (id: string) => {
   console.log('createAnswer answer', answer);
   await peerConnection.setLocalDescription(answer);
   peerConnection.onicecandidate = async (event) => {
-    if (event.candidate && peerConnection.localDescription) sendAnswer(peerConnection.localDescription);
+    if (event.candidate && peerConnection.localDescription) {
+      sendAnswer(peerConnection.localDescription);
+    }
   };
 };
 
-const addAnswer = async () => {
-  answerSdp = localStorage.getItem('answerSdp');
-  console.log('addAnswer answerSdp', answerSdp);
-  const answer = JSON.parse(answerSdp);
+const addAnswer = async (answer) => {
   if (!peerConnection.currentRemoteDescription) {
     peerConnection.setRemoteDescription(answer);
   }

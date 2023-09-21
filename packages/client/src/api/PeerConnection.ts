@@ -1,22 +1,29 @@
 import { io } from 'socket.io-client';
 
-let id = '';
+declare global {
+  interface Window {
+    id: any;
+  }
+}
+
+window.id = '';
 let getIdsListCallback: ((ids: string[]) => void)[] = [];
 let getOfferCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
+export let getAnswerCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
 
 const socket = io('http://localhost:3008', {
   withCredentials: true
 });
 
 const post = (key, params) => {
-  socket.emit(key, { ...params, id }, (value) => {
+  socket.emit(key, { ...params, id: window.id }, (value) => {
     console.log('client', key, value);
   });
 };
 
 socket.on('connect', () => {
   console.log('client connect', socket.id);
-  id = socket.id;
+  window.id = socket.id;
 });
 
 socket.on('getIdsList', ({ ids }: { ids: string[] }) => {
@@ -25,10 +32,16 @@ socket.on('getIdsList', ({ ids }: { ids: string[] }) => {
   if (callBack) callBack(ids);
 });
 
-socket.on('getOffer', ({ offer }: { offer: RTCSessionDescriptionInit }) => {
-  console.log('client getOffer', offer);
+socket.on('getOffer', ({ connectId, offer }: { connectId: string; offer: RTCSessionDescriptionInit }) => {
+  console.log('client getOffer', connectId, offer);
   const callBack = getOfferCallback.pop();
   if (callBack) callBack(offer);
+});
+
+socket.on('getAnswer', ({ id, remotePeerAnswer }: { id: string; remotePeerAnswer: RTCSessionDescriptionInit }) => {
+  console.log('client getAnswer', id, remotePeerAnswer);
+  const callBack = getAnswerCallback.pop();
+  if (callBack) callBack(remotePeerAnswer);
 });
 
 export const sendOffer = async (remotePeerOffer: RTCSessionDescriptionInit) => {
@@ -46,9 +59,9 @@ export const getIdsList = async (): Promise<string[]> => {
   });
 };
 
-export const getOffer = async (id): Promise<RTCSessionDescriptionInit> => {
+export const getOffer = async (connectId): Promise<RTCSessionDescriptionInit> => {
   return new Promise((resolve) => {
-    post('getOffer', { id });
+    post('getOffer', { connectId });
     getOfferCallback.push(resolve);
   });
 };

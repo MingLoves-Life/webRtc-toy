@@ -22,22 +22,26 @@ io.on("connection", (socket) => {
   console.log("server connect", socket.id);
   ids.set(socket.id, "");
 
+  socket.on("getIdsList", ({ id }) => {
+    console.log("server getIdsList", id, [...ids.keys()]);
+    socket.emit("getIdsList", { ids: [...ids.keys()] });
+  });
+
   socket.on("sendOffer", (socket) => {
     const { id, remotePeerOffer } = socket;
     console.log("server sendOffer", id);
     ids.set(id, remotePeerOffer);
   });
 
-  socket.on("getIdsList", ({ id }) => {
-    console.log("server getIdsList", id, [...ids.keys()]);
-    socket.emit("getIdsList", { ids: [...ids.keys()] });
+  socket.on("getOffer", ({ connectId }) => {
+    const offer = ids.get(connectId) || "此Id不存在";
+    socket.emit("getOffer", { connectId, offer });
   });
 
-  socket.on("sendAnswer", (socket) => {
-    const { id, remotePeerAnswer } = socket;
+  socket.on("sendAnswer", ({ id, remotePeerAnswer }) => {
     console.log("server sendAnswer", id);
     ids.set(id, remotePeerAnswer);
-    socket.emit("getIdsList", { ids: [...ids.keys()] });
+    socket.emit("getAnswer", { id, remotePeerAnswer });
   });
 });
 
@@ -45,4 +49,4 @@ httpServer.listen(3008, () => {
   console.log("3008项目启动");
 });
 
-// module.exports = app.callback();
+module.exports = app.callback();
