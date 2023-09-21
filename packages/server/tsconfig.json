@@ -2,8 +2,23 @@
   "compileOnSave": true,
   "compilerOptions": {
     "types": ["node"],
-    "downlevelIteration": true,
+    "outDir": "./dist/",
+    "target": "ESNext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "declaration": false,
+    "strict": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "allowJs": true,
+    "checkJs": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": true,
+    "baseUrl": ".",
+    "lib": ["esnext", "dom", "scripthost"]
   },
-  "target": "ESNext",
   "include": ["*.ts"]
 }

@@ -11,12 +11,15 @@ let getIdsListCallback: ((ids: string[]) => void)[] = [];
 let getOfferCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
 export let getAnswerCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
 
-const socket = io('http://localhost:3008', {
-  withCredentials: true
-});
+const socket = io(
+  import.meta.env.MODE === 'development' ? 'http://localhost:3008' : 'https://web-rtc-toy-server.vercel.app',
+  {
+    withCredentials: true
+  }
+);
 
-const post = (key, params) => {
-  socket.emit(key, { ...params, id: window.id }, (value) => {
+const post = (key: string, params: Record<string, unknown>) => {
+  socket.emit(key, { ...params, id: window.id }, (value: unknown) => {
     console.log('client', key, value);
   });
 };
@@ -59,7 +62,7 @@ export const getIdsList = async (): Promise<string[]> => {
   });
 };
 
-export const getOffer = async (connectId): Promise<RTCSessionDescriptionInit> => {
+export const getOffer = async (connectId: String): Promise<RTCSessionDescriptionInit> => {
   return new Promise((resolve) => {
     post('getOffer', { connectId });
     getOfferCallback.push(resolve);

@@ -1,0 +1,25 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+      "types": ["vite/client"],
+      "outDir": "./dist/",
+      "target": "ESNext",
+      "module": "esnext",
+      "moduleResolution": "node",
+      "declaration": false,
+      "strict": true,
+      "noEmit": true,
+      "jsx": "preserve",
+      "sourceMap": true,
+      "allowJs": true,
+      "checkJs": false,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "experimentalDecorators": true,
+      "useDefineForClassFields": true,
+      "baseUrl": ".",
+      "lib": ["esnext", "dom", "scripthost"]
+    },
+    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.js", "webpack-build/**/*"]
+  }
+  
