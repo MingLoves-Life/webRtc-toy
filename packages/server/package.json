@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.ts -w",
-    "build": "node app.js"
+    "build": "node app.ts"
   },
   "keywords": [],
   "author": "",
