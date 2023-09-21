@@ -9,7 +9,11 @@ const httpServer = createServer(app.callback());
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://www.hmayc.fun",
+      "https://web-rtc-toy-client.vercel.app",
+    ],
     credentials: true,
   },
 });
