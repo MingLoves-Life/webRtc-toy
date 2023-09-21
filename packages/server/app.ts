@@ -18,6 +18,8 @@ app.use(cors());
 
 const ids = new Map();
 
+console.log(1);
+
 io.on("connection", (socket) => {
   console.log("server connect", socket.id);
   ids.set(socket.id, "");
