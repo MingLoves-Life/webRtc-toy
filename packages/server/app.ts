@@ -16,6 +16,8 @@ const io = new Server(httpServer, {
     ],
     credentials: true,
   },
+  // transports: ["websocket","polling"],
+  transports: ["polling"],
 });
 
 app.use(cors());
