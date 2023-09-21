@@ -12,9 +12,11 @@ let getOfferCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
 export let getAnswerCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
 
 const socket = io(
-  import.meta.env.MODE === 'development' ? 'http://localhost:3008' : 'https://web-rtc-toy-server.vercel.app',
+  import.meta.env.MODE === 'development' ? 'http://localhost:80' : 'https://web-rtc-toy-server.vercel.app',
   {
-    withCredentials: true
+    withCredentials: true,
+    // transports: ["websocket","polling"],
+    transports: ['polling']
   }
 );
 
