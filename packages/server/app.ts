@@ -49,4 +49,8 @@ io.on("connection", (socket) => {
   });
 });
 
+httpServer.listen(80, () => {
+  console.log("80项目启动");
+});
+
 module.exports = httpServer.callback();
