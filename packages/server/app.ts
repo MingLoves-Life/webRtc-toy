@@ -49,7 +49,7 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(3008, () => {
+httpServer.listen(443, () => {
   console.log("3008项目启动");
 });
 
