@@ -1,53 +1,42 @@
-import { io } from 'socket.io-client';
-
 declare global {
   interface Window {
-    id: any;
+    _id: any;
   }
 }
 
-window.id = '';
-let getIdsListCallback: ((ids: string[]) => void)[] = [];
-let getOfferCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
-export let getAnswerCallback: ((offer: RTCSessionDescriptionInit) => void)[] = [];
+window._id = '';
 
-const socket = io(
-  import.meta.env.MODE === 'development' ? 'http://localhost:80' : 'https://web-rtc-toy-server.vercel.app',
-  {
-    withCredentials: true,
-    // transports: ["websocket","polling"],
-    transports: ['polling']
-  }
-);
+const baseUrl =
+  import.meta.env.MODE === 'development' ? 'http://localhost:80' : 'https://web-rtc-toy-server.vercel.app';
 
-const post = (key: string, params: Record<string, unknown>) => {
-  socket.emit(key, { ...params, id: window.id }, (value: unknown) => {
-    console.log('client', key, value);
-  });
+const post = (key: string, params: Record<string, unknown> = {}) => {
+  const config = { ...params, ...(window?._id ? { id: window?._id } : {}) };
+  return fetch(`${baseUrl}/${key}`, { method: 'POST', body: JSON.stringify(config) })
+    .then((res) => res.json())
+    .then(({ data }) => data);
 };
 
-socket.on('connect', () => {
-  console.log('client connect', socket.id);
-  window.id = socket.id;
+post('connection').then(({ id }) => {
+  window._id = id;
 });
 
-socket.on('getIdsList', ({ ids }: { ids: string[] }) => {
-  console.log('client getIdsList', ids);
-  const callBack = getIdsListCallback.pop();
-  if (callBack) callBack(ids);
-});
+// socket.on('getIdsList', ({ ids }: { ids: string[] }) => {
+//   console.log('client getIdsList', ids);
+//   const callBack = getIdsListCallback.pop();
+//   if (callBack) callBack(ids);
+// });
 
-socket.on('getOffer', ({ connectId, offer }: { connectId: string; offer: RTCSessionDescriptionInit }) => {
-  console.log('client getOffer', connectId, offer);
-  const callBack = getOfferCallback.pop();
-  if (callBack) callBack(offer);
-});
+// socket.on('getOffer', ({ connectId, offer }: { connectId: string; offer: RTCSessionDescriptionInit }) => {
+//   console.log('client getOffer', connectId, offer);
+//   const callBack = getOfferCallback.pop();
+//   if (callBack) callBack(offer);
+// });
 
-socket.on('getAnswer', ({ id, remotePeerAnswer }: { id: string; remotePeerAnswer: RTCSessionDescriptionInit }) => {
-  console.log('client getAnswer', id, remotePeerAnswer);
-  const callBack = getAnswerCallback.pop();
-  if (callBack) callBack(remotePeerAnswer);
-});
+// socket.on('getAnswer', ({ id, remotePeerAnswer }: { id: string; remotePeerAnswer: RTCSessionDescriptionInit }) => {
+//   console.log('client getAnswer', id, remotePeerAnswer);
+//   const callBack = getAnswerCallback.pop();
+//   if (callBack) callBack(remotePeerAnswer);
+// });
 
 export const sendOffer = async (remotePeerOffer: RTCSessionDescriptionInit) => {
   post('sendOffer', { remotePeerOffer });
@@ -57,16 +46,12 @@ export const sendAnswer = async (remotePeerAnswer: RTCSessionDescriptionInit) =>
   post('sendAnswer', { remotePeerAnswer });
 };
 
-export const getIdsList = async (): Promise<string[]> => {
-  return new Promise((resolve) => {
-    post('getIdsList', {});
-    getIdsListCallback.push(resolve);
-  });
+export const getIdsList = async (): Promise<{ idsList: string[] }> => {
+  return post('getIdsList');
 };
 
 export const getOffer = async (connectId: String): Promise<RTCSessionDescriptionInit> => {
   return new Promise((resolve) => {
     post('getOffer', { connectId });
-    getOfferCallback.push(resolve);
   });
 };

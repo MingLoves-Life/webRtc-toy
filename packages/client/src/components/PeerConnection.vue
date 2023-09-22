@@ -14,7 +14,7 @@
 </template>
 <script setup lang="ts">
 import { defineComponent, toRef, ref, Ref } from 'vue';
-import { sendOffer, getIdsList, getOffer, sendAnswer, getAnswerCallback } from '../api/PeerConnection';
+import { sendOffer, getIdsList, getOffer, sendAnswer } from '../api/PeerConnection';
 import FileTransfer from '../components/FileTransfer.vue';
 import { useCreateDataCannel } from '../hooks/useCreateDataCannel';
 
@@ -61,15 +61,14 @@ const createOffer = async () => {
   peerConnection.onicecandidate = async (event) => {
     if (event.candidate && peerConnection?.localDescription) {
       sendOffer(peerConnection.localDescription);
-      getAnswerCallback.push(addAnswer);
-      console.log('注册 addAnswer 回调');
     }
   };
 };
 
 const createAnswer = async () => {
-  const idsList = await getIdsList();
-  ids.value = idsList.filter((id) => id !== window.id);
+  const { idsList } = await getIdsList();
+  console.log(idsList);
+  ids.value = idsList.filter((id) => id !== window._id);
 };
 
 const startConnect = async (id: string) => {

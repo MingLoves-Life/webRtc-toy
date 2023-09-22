@@ -65,21 +65,45 @@ const { v4 } = require("uuid");
 
 const app = new Koa();
 const router = new Router();
+const ids = new Map();
 
 router.post("/connection", async (ctx) => {
+  const id = v4();
+  console.log("server connect", id);
+  ids.set(id, "");
+  ctx.body = { code: 200, data: { id } };
+});
+
+router.post("/getIdsList", (ctx) => {
   let { body } = ctx.request;
-  console.log(body);
-  ctx.body = v4();
+  console.log("server getIdsList", body.id, [...ids.keys()]);
+  ctx.body = { code: 200, data: { idsList: [...ids.keys()] } };
+});
+
+router.post("/sendOffer", (ctx) => {
+  const { id, remotePeerOffer } = ctx.request.body;
+  console.log("server sendOffer", id);
+  ids.set(id, remotePeerOffer);
+  ctx.body = { code: 200, data: {} };
+});
+
+router.post("/getOffer", ({ id }) => {
+  const offer = ids.get(id) || "此Id不存在";
+  // socket.emit("getOffer", { connectId, offer });
+});
+
+router.post("/sendAnswer", ({ id, remotePeerAnswer }) => {
+  console.log("server sendAnswer", id);
+  ids.set(id, remotePeerAnswer);
+  // socket.emit("getAnswer", { id, remotePeerAnswer });
 });
 
 app.use(koaBody());
 app.use(cors());
 app.use(router.routes()).use(router.allowedMethods());
 
-const ids = new Map();
-
-app.listen(3008, () => {
-  console.log("3008项目启动");
+app.listen(80, () => {
+  console.log("80项目启动");
 });
 
 module.exports = app.callback();
